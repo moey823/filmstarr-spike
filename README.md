@@ -24,7 +24,7 @@ Every route uses relative paths and works at both a domain root and `/filmstarr-
 - Proposed concise copy, cleaned filename display titles, ordering, and logo choice remain reviewable design decisions. No invented project roles, testimonials, or contact details.
 - Contact details and social URLs have not been supplied. Contact actions stay unconfigured; no inquiry or form is sent.
 - Photography, 17hats, and testimonials are outside this spike.
-- Source/review media comes from the client's Frame.io handoff; permanent video hosting remains undecided. Acquisition notes and the original client handoff stay locally on the mini, outside Git history. Current video cards link to Frame.io review; no full-length videos are committed.
+- Source/review media comes from the client's Frame.io handoff; permanent video hosting remains undecided. Acquisition notes and the original client handoff stay locally on the mini, outside Git history. Two short 720p previews use native playback from the `spike-media` GitHub Release; the remaining video cards link to Frame.io review. MP4 files stay outside Git history. Release playback becomes available to signed-out visitors only when repository publication is approved.
 - Search indexing is discouraged with `noindex` metadata and `robots.txt`, but this is not access control.
 
 All development and test outputs remain on the Mac mini.
@@ -32,3 +32,5 @@ All development and test outputs remain on the Mac mini.
 ## Verification
 
 `python3 scripts/check.py` validates the deployable artifact and inventory. `scripts/browser-check.mjs` optionally uses Playwright to verify all routes at 390px and 1440px, project-subdirectory navigation, enlarged text, available image counts, source-error fallback, and video-dialog keyboard/focus cleanup. Set `PLAYWRIGHT_MODULE` to an installed Playwright module, `SPIKE_CHROMIUM_EXECUTABLE` to the available headless browser if needed, and `SPIKE_TEST_BASE` to the preview URL. Test screenshots stay in ignored `.test-output/`. Dialog tests do not claim that unhosted video files play.
+
+The two real preview files also passed `scripts/video-check.mjs` in a headless development browser: 1280×720 H.264 playback at 22.523s and 36.053s, with Escape cleanup and focus restoration. This check used the downloaded source bytes while the GitHub repository remained private; public CDN delivery is checked after publication.
