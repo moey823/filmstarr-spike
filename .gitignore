@@ -1,0 +1,14 @@
+__pycache__/
+.DS_Store
+node_modules/
+.test-output/
+.runtime/
+.env
+.env.*
+
+# Client handoff and acquisition notes stay on the mini.
+docs/
+AGENTS.md
+
+# Optional workflow template is local; spike uses native branch publishing.
+.github/
