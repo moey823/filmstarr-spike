@@ -53,6 +53,7 @@ manifest = SITE / "assets/portfolio.json"
 if manifest.exists():
     data = json.loads(manifest.read_text())
     ids = set()
+    frame_urls = set()
     for group, count in (("public", 10), ("coldwell", 7), ("broadcast", 5)):
         items = data.get(group, [])
         if len(items) != count:
@@ -61,6 +62,15 @@ if manifest.exists():
             if item.get("id") in ids or not item.get("id"):
                 errors.append(f"Duplicate/missing item id: {item.get('id')}")
             ids.add(item.get("id"))
+            if group in ("public", "coldwell"):
+                frame_url = item.get("frameUrl", "")
+                parsed_frame = urlsplit(frame_url)
+                parts = parsed_frame.path.strip("/").split("/")
+                if parsed_frame.scheme != "https" or parsed_frame.netloc != "next.frame.io" or len(parts) != 4 or parts[0] != "share" or parts[2] != "view" or parsed_frame.query:
+                    errors.append(f"{item.get('id')}: requires a stable individual Frame.io share viewer URL")
+                if frame_url in frame_urls:
+                    errors.append(f"{item.get('id')}: duplicate Frame.io viewer URL")
+                frame_urls.add(frame_url)
             if not item.get("title") or not item.get("filename"):
                 errors.append(f"Missing asset identification: {item}")
             for key in ("poster", "image", "src"):

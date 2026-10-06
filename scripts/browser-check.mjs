@@ -60,6 +60,7 @@ try {
   await playerPage.route('**/assets/portfolio.json', async route=>{
     const response=await route.fetch();
     const manifest=await response.json();
+    delete manifest.public[0].frameUrl;
     manifest.public[0].src='assets/media/playback-test.mp4';
     await route.fulfill({json:manifest});
   });

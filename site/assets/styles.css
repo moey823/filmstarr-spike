@@ -848,3 +848,25 @@ body[data-page="editorial"] .work-image {
     line-height: 1.02;
   }
 }
+
+/* Public Frame.io share viewer. Removing the iframe stops playback on close. */
+.frame-player {
+  display: block;
+  width: 100%;
+  height: clamp(24rem, 65dvh, 44rem);
+  border: 0;
+  background: #050505;
+}
+.frame-fallback {
+  display: inline-block;
+  margin-top: 1rem;
+  color: var(--paper);
+  text-underline-offset: 0.25em;
+}
+.video-player[hidden],
+.frame-fallback[hidden] {
+  display: none;
+}
+@media (max-width: 48rem) {
+  .frame-player { height: 60dvh; min-height: 18rem; }
+}

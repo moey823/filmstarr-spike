@@ -49,6 +49,14 @@
   const player = dialog?.querySelector(".video-player");
   const dialogTitle = dialog?.querySelector("#video-dialog-title");
   const closeButton = dialog?.querySelector(".dialog-close");
+  const frameFallback = dialog ? element("a", "frame-fallback", "Open in Frame.io ↗") : null;
+  if (frameFallback) {
+    frameFallback.target = "_blank";
+    frameFallback.rel = "noopener noreferrer";
+    frameFallback.hidden = true;
+    dialog.append(frameFallback);
+  }
+  let framePlayer = null;
   let opener = null;
 
   function closeVideo() {
@@ -57,6 +65,12 @@
   }
 
   function stopVideo() {
+    framePlayer?.remove();
+    framePlayer = null;
+    if (frameFallback) {
+      frameFallback.hidden = true;
+      frameFallback.removeAttribute("href");
+    }
     if (player) {
       player.pause();
       player.removeAttribute("src");
@@ -84,6 +98,14 @@
     } catch {
       return null;
     }
+  }
+
+  function safeFrameUrl(value) {
+    const href = safeUrl(value);
+    if (!href) return null;
+    const url = new URL(href);
+    return url.protocol === "https:" &&
+      ["next.frame.io", "frame.io", "f.io"].includes(url.hostname) ? href : null;
   }
 
   function applyLogo(manifest) {
@@ -162,23 +184,43 @@
       ? entry.title.trim()
       : fallbackTitle(collection, index);
     const source = safeUrl(entry.src);
-    const sourcePage = safeUrl(entry.sourceUrl);
+    const frameUrl = safeFrameUrl(entry.frameUrl);
+    const sourcePage = frameUrl || safeUrl(entry.sourceUrl);
+    const canPlay = Boolean(frameUrl || source);
     const card = element("article", "work-card");
-    const visualTag = source ? "button" : (sourcePage ? "a" : "div");
+    const visualTag = canPlay ? "button" : (sourcePage ? "a" : "div");
     const visual = element(visualTag, "work-visual");
 
-    if (source) {
+    if (canPlay) {
       visual.type = "button";
       visual.setAttribute("aria-label", `Play ${title}`);
       visual.addEventListener("click", () => {
         if (!dialog || !player || !dialogTitle) return;
         opener = visual;
         dialogTitle.textContent = title;
-        player.src = source;
-        player.load();
+        player.hidden = Boolean(frameUrl);
+        if (frameFallback) {
+          frameFallback.hidden = !sourcePage;
+          if (sourcePage) frameFallback.href = sourcePage;
+        }
+        if (frameUrl) {
+          framePlayer = element("iframe", "frame-player");
+          framePlayer.title = `Frame.io player: ${title}`;
+          framePlayer.allow = "autoplay; fullscreen; picture-in-picture";
+          framePlayer.allowFullscreen = true;
+          framePlayer.referrerPolicy = "strict-origin-when-cross-origin";
+          framePlayer.src = frameUrl;
+          player.after(framePlayer);
+        } else {
+          player.src = source;
+          player.load();
+        }
         dialog.showModal();
-        player.focus();
-        player.play().catch(() => {});
+        if (frameUrl) closeButton?.focus();
+        else {
+          player.focus();
+          player.play().catch(() => {});
+        }
       });
     } else if (sourcePage) {
       visual.href = sourcePage;
@@ -189,12 +231,12 @@
       visual.setAttribute("aria-label", `${title}; media link pending`);
     }
 
-    appendMedia(visual, entry, title, Boolean(source));
+    appendMedia(visual, entry, title, canPlay);
     card.append(visual);
 
     const caption = element("div", "work-caption");
     caption.append(element("h3", "work-title", title));
-    const detail = source
+    const detail = canPlay
       ? "Play film"
       : (sourcePage ? "Review on Frame.io" : "Source link pending");
     caption.append(element("p", "work-meta", detail));

@@ -7,6 +7,12 @@ const proxyDir=new URL('../.runtime/preview-videos/',import.meta.url);
 const browser=await chromium.launch({headless:true,...(process.env.SPIKE_CHROMIUM_EXECUTABLE?{executablePath:process.env.SPIKE_CHROMIUM_EXECUTABLE}:{})});
 try {
  const page=await browser.newPage();
+ await page.route('**/assets/portfolio.json',async route=>{
+  const response=await route.fetch();
+  const manifest=await response.json();
+  for(const item of manifest.public) delete item.frameUrl;
+  await route.fulfill({json:manifest});
+ });
  if(process.env.SPIKE_USE_HOSTED_VIDEO!=='1') await page.route('https://github.com/moey823/filmstarr-spike/releases/download/spike-media/*.mp4',async route=>{
   const name=path.basename(new URL(route.request().url()).pathname);
   const body=await fs.readFile(new URL(name,proxyDir));
